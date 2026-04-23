@@ -150,6 +150,17 @@ async function handler(req: Request): Promise<Response> {
 // =======================================================
 // 5. 启动服务
 // =======================================================
-// 注意：在 Deno Deploy 上，serve 函数会被自动处理，PORT 会被忽略
-// 在本地运行时，会监听 8000 端口
-serve(handler, { port: CONFIG.PORT });
+
+// 判断是否在 Deno Deploy 环境
+// Deno Deploy 会自动注入 "DENO_DEPLOYMENT_ID" 这个环境变量
+const isDeploy = !!Deno.env.get("DENO_DEPLOYMENT_ID");
+
+if (isDeploy) {
+  // 在云端：不传任何参数，让 Deno 自动处理
+  console.log("☁️ 检测到云端环境，自动适配端口...");
+  serve(handler);
+} else {
+  // 在本地：使用配置文件里的 8000 端口
+  console.log(`💻 本地开发环境，监听端口 ${CONFIG.PORT}...`);
+  serve(handler, { port: CONFIG.PORT });
+}
